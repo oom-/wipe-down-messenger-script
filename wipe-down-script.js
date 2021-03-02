@@ -15,18 +15,21 @@ var mouseOver = new MouseEvent('mouseover', {
         [...document.querySelectorAll('div[role="gridcell"][data-scope="messages_table"][tabIndex="0"]')].forEach(htmlelement => htmlelement.dispatchEvent(mouseOver));
         plus = [...document.querySelectorAll('div[aria-expanded="false"][aria-label="Plus"]')];
         try {
-            plus[0].click();
-            await sleep(200);
+            plus[plus.length-1].click();
+            await sleep(100);
+            console.log("click +");
         }
         catch (ex) { console.log(":)"); }
         try {
             document.querySelector('div[aria-label="Supprimer le message"]').click();
-            await sleep(200);
+            await sleep(100);
+            console.log("click delete message");
         }
         catch (ex) { console.log(":|"); }
         try {
             [...document.querySelectorAll('div span span')].filter(html => html.innerText.trim().toLowerCase() == "supprimer")[0].click();
-            await sleep(200);
+            await sleep(100);
+            console.log("click delete message modal");
         }
         catch (ex) { console.log(":(") }
     }
