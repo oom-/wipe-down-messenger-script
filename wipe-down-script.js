@@ -1,38 +1,73 @@
-var mouseOver = new MouseEvent('mouseover', {
-    'view': window,
-    'bubbles': true,
-    'cancelable': true
-});
-(async () => {
+// ==UserScript==
+// @name         Wipe messenger
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Wipe messenger chat
+// @author       You
+// @match        https://www.messenger.com/t/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=messenger.com
+// @grant        none
+// ==/UserScript==
 
-    let sleep = (ms) => new Promise(res => setTimeout(res, ms));
+(function() {
 
-    [...document.querySelectorAll('div[role="gridcell"][data-scope="messages_table"][tabIndex="0"]')].forEach(htmlelement => htmlelement.dispatchEvent(mouseOver));
-    await sleep(2000);
-    let plus = [...document.querySelectorAll('div[aria-expanded="false"][aria-label="Plus"]')];
+  'use strict';
 
-    while (plus.length > 0) {
-        [...document.querySelectorAll('div[role="gridcell"][data-scope="messages_table"][tabIndex="0"]')].forEach(htmlelement => htmlelement.dispatchEvent(mouseOver));
-        plus = [...document.querySelectorAll('div[aria-expanded="false"][aria-label="Plus"]')];
-        try {
-            plus[plus.length-1].click();
-            await sleep(750);
-            console.log("click +");
-        }
-        catch (ex) { console.log(":)"); }
-        try {
-            document.querySelector('div[aria-label="Supprimer le message"]').click();
-            await sleep(750);
-            console.log("click delete message");
-        }
-        catch (ex) { console.log(":|"); }
-        try {
-            [...document.querySelectorAll('div span span')].filter(html => html.innerText.trim().toLowerCase() == "supprimer")[0].click();
-            await sleep(750);
-            console.log("click delete message modal");
-        }
-        catch (ex) { console.log(":(") }
-    }
-    console.log("wipe down finished!");
-    alert("Clear");
+  //Add clear button
+  console.log("Wait 10sec for the page to load");
+  setTimeout(() => {
+      let actionButtonsWrapper = document.querySelector("div [aria-label='Nouveau message']").parentElement.parentElement.parentElement;
+      let wrapper = document.createElement("div");
+      wrapper.innerHTML = "<button>Clear</button>";
+      wrapper.firstChild.onclick = clearMessages;
+      actionButtonsWrapper.appendChild(wrapper);
+      console.log("Button added");
+  }, 10000);
+
+
+  //Functions
+  function getRandomMessages(){
+      let messages = [...document.querySelectorAll("div.__fb-light-mode[role='row']")];
+      return messages[Math.floor(Math.random()*messages.length)];
+  }
+
+  function sleep(ms) {return new Promise(res => setTimeout(res, ms));}
+
+  async function clearMessages(){
+      try{
+          console.log("Lets clear !");
+
+          var mouseOver = new MouseEvent("mouseover", {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+          });
+
+          let message = getRandomMessages();
+          if (message == null){ console.log("done"); return true;}
+          message.style.backgroundColor = "red";
+          message.style.border = "2px solid red";
+
+          //1. Scroll to message:
+          message.scrollIntoView({ behavior: "smooth" });
+          await sleep(200);
+          message.dispatchEvent(mouseOver);
+          await sleep(200);
+          let plusButton = message.querySelector("div[aria-label='Plus']");
+          plusButton.style.border = "2px solid purple";
+          plusButton.click();
+          await sleep(200);
+          document.querySelector("div[role='menu'] div[aria-label='Supprimer le message']").click();
+          await sleep(200);
+          document.querySelector("div[aria-label='Supprimer'][role='button']").click();
+          await sleep(200);
+          clearMessages();
+
+
+      }
+      catch(err){
+          clearMessages();
+      }
+  }
+
 })();
